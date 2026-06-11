@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VertexTW — Hall Effect Gaming Keyboards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #00e5a0;
+  --green-dim: rgba(0,229,160,0.12);
+  --green-glow: rgba(0,229,160,0.22);
+  --bg: #060810;
+  --surface: #0d1018;
+  --surface2: #131720;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(0,229,160,0.35);
+  --text: #e8edf5;
+  --muted: #7a8496;
+  --danger: #ff4f4f;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; }
+
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+  background: rgba(6,8,16,0.85); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 5%; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text); cursor: pointer; }
+.logo span { color: var(--green); }
+.nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+.nav-links a { font-size: 0.9rem; color: var(--muted); text-decoration: none; transition: color 0.2s; cursor: pointer; }
+.nav-links a:hover { color: var(--green); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+
+/* LANGUAGE SELECTOR */
+.lang-wrap { position: relative; }
+.lang-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); padding: 7px 13px;
+  border-radius: 50px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+  transition: all 0.2s;
+}
+.lang-btn:hover { border-color: var(--border-hover); color: var(--text); }
+.lang-btn .chevron { font-size: 0.55rem; opacity: 0.6; transition: transform 0.2s; }
+.lang-wrap.open .lang-btn .chevron { transform: rotate(180deg); }
+
+.lang-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; min-width: 190px; overflow: hidden;
+  opacity: 0; pointer-events: none;
+  transform: translateY(-6px); transition: all 0.2s; z-index: 999;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.5);
+}
+.lang-wrap.open .lang-dropdown { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.lang-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; cursor: pointer;
+  font-size: 0.875rem; color: var(--muted); transition: all 0.15s;
+}
+.lang-option:hover { background: var(--surface2); color: var(--text); }
+.lang-option.active { color: var(--green); font-weight: 500; }
+.lang-option .flag { font-size: 1.1rem; }
+.lang-option .lang-name { flex: 1; }
+.lang-option .check { font-size: 0.75rem; color: var(--green); opacity: 0; }
+.lang-option.active .check { opacity: 1; }
+
+.cart-btn-nav {
+  background: var(--green-dim); border: 1px solid var(--border-hover); color: var(--green);
+  padding: 8px 18px; border-radius: 50px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500;
+  display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+}
+.cart-btn-nav:hover { background: rgba(0,229,160,0.2); transform: translateY(-1px); }
+.cart-count { background: var(--green); color: var(--bg); width: 20px; height: 20px; border-radius: 50%; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+/* HERO */
+.hero { min-height: 100vh; display: flex; flex-direction: column; padding-top: 64px; position: relative; overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.hero-bg::before { content: ''; position: absolute; width: 800px; height: 800px; border-radius: 50%; background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%); top: -200px; right: -200px; animation: pulse 8s ease-in-out infinite; }
+.hero-bg::after { content: ''; position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(70,100,255,0.06) 0%, transparent 70%); bottom: -100px; left: -100px; animation: pulse 10s ease-in-out infinite 2s; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } }
+
+.slideshow { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; padding: 60px 5%; }
+.slides-wrapper { position: relative; width: 100%; min-height: 520px; }
+.slide { position: absolute; inset: 0; display: flex; align-items: center; gap: 80px; opacity: 0; transform: translateX(60px); transition: all 0.6s cubic-bezier(0.25,0.46,0.45,0.94); pointer-events: none; }
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.slide.exit-left { opacity: 0; transform: translateX(-60px); }
+.slide-visual { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.keyboard-display { width: 100%; max-width: 500px; height: 300px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.keyboard-display::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,229,160,0.04) 0%, transparent 60%); }
+.keyboard-emoji { font-size: 6rem; filter: drop-shadow(0 0 40px rgba(0,229,160,0.3)); animation: float 4s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.kb-label { position: absolute; bottom: 16px; left: 20px; font-size: 0.75rem; color: var(--muted); letter-spacing: 0.05em; }
+.slide-info { flex: 1; min-width: 0; }
+.slide-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px; border: 1px solid var(--border-hover); background: var(--green-dim); color: var(--green); font-size: 0.8rem; font-weight: 500; margin-bottom: 24px; }
+.slide-info h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 800; line-height: 1.05; margin-bottom: 20px; }
+.slide-info h1 em { font-style: normal; color: var(--green); }
+.slide-info p { color: var(--muted); font-size: 1.05rem; line-height: 1.8; margin-bottom: 32px; max-width: 420px; }
+.slide-price-row { display: flex; align-items: center; gap: 20px; margin-bottom: 32px; }
+.slide-price { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 700; color: var(--green); }
+.price-note { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+.slide-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+.btn-primary { background: var(--green); color: var(--bg); border: none; padding: 14px 28px; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 8px; }
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 32px var(--green-glow); }
+.btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 14px 28px; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.25s; }
+.btn-ghost:hover { border-color: var(--border-hover); color: var(--green); }
+.slide-controls { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 0 5% 50px; }
+.dot-btn { width: 10px; height: 10px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.3s; padding: 0; }
+.dot-btn.active { background: var(--green); width: 28px; border-radius: 5px; }
+.arrow-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.arrow-btn:hover { border-color: var(--border-hover); color: var(--green); }
+
+/* PRODUCTS */
+.products-section { padding: 80px 5%; background: var(--surface); border-top: 1px solid var(--border); }
+.section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; }
+.section-header h2 { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 700; }
+.section-header h2 span { color: var(--green); }
+.see-all { color: var(--green); font-size: 0.9rem; text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: gap 0.2s; }
+.see-all:hover { gap: 10px; }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+.product-card { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; cursor: pointer; transition: all 0.35s; position: relative; }
+.product-card:hover { transform: translateY(-8px); border-color: var(--border-hover); box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px var(--border-hover); }
+.product-card-img { width: 100%; height: 200px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 4.5rem; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+.product-card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(6,8,16,0.3) 100%); }
+.product-card-body { padding: 22px; }
+.product-card .badge { display: inline-block; padding: 4px 12px; border-radius: 50px; background: var(--green-dim); border: 1px solid var(--border-hover); color: var(--green); font-size: 0.75rem; font-weight: 500; margin-bottom: 12px; }
+.product-card h3 { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+.product-card .desc { color: var(--muted); font-size: 0.88rem; line-height: 1.7; margin-bottom: 18px; }
+.product-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.product-price { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--green); }
+.add-cart-mini { background: var(--green-dim); border: 1px solid var(--border-hover); color: var(--green); padding: 8px 16px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.add-cart-mini:hover { background: rgba(0,229,160,0.22); }
+
+/* DETAIL */
+.product-detail { padding: 100px 5% 80px; max-width: 1200px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; cursor: pointer; margin-bottom: 48px; transition: color 0.2s; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+.back-link:hover { color: var(--green); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: start; }
+.detail-visual { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; height: 400px; display: flex; align-items: center; justify-content: center; font-size: 8rem; position: sticky; top: 84px; overflow: hidden; }
+.detail-visual::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(0,229,160,0.08), transparent 70%); }
+.detail-info .brand { font-size: 0.8rem; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+.detail-info h1 { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 800; margin-bottom: 16px; }
+.detail-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+.detail-badge { padding: 6px 14px; border-radius: 50px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; }
+.detail-desc { color: var(--muted); line-height: 1.9; font-size: 1rem; margin-bottom: 36px; }
+.specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 36px; }
+.spec-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.spec-item .spec-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+.spec-item .spec-val { font-size: 0.95rem; font-weight: 500; }
+.detail-price-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 28px; }
+.detail-price { font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800; color: var(--green); }
+.detail-price-note { font-size: 0.85rem; color: var(--muted); }
+.color-section { margin-bottom: 28px; }
+.color-section label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 10px; }
+.color-options { display: flex; gap: 10px; }
+.color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
+.color-swatch.selected { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-dim); }
+.switch-section { margin-bottom: 32px; }
+.switch-section label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 10px; }
+.switch-options { display: flex; gap: 10px; flex-wrap: wrap; }
+.switch-opt { padding: 8px 18px; border-radius: 10px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+.switch-opt:hover { border-color: var(--border-hover); color: var(--text); }
+.switch-opt.selected { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.detail-actions { display: flex; gap: 14px; }
+.btn-buy-now { flex: 1; background: var(--green); color: var(--bg); border: none; padding: 16px 0; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.25s; }
+.btn-buy-now:hover { transform: translateY(-3px); box-shadow: 0 16px 40px var(--green-glow); }
+.btn-add-cart-large { flex: 1; background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 16px 0; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.25s; }
+.btn-add-cart-large:hover { border-color: var(--border-hover); color: var(--green); }
+
+/* CART */
+.cart-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.cart-overlay.open { opacity: 1; pointer-events: auto; }
+.cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 1001; width: 420px; max-width: 95vw; background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
+.cart-drawer.open { transform: translateX(0); }
+.cart-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px 20px; border-bottom: 1px solid var(--border); }
+.cart-header h2 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; }
+.close-btn { width: 36px; height: 36px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 50%; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.close-btn:hover { border-color: var(--danger); color: var(--danger); }
+.cart-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.cart-empty { text-align: center; padding: 60px 0; color: var(--muted); }
+.cart-empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
+.cart-empty p { font-size: 1rem; }
+.cart-item-row { display: flex; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.cart-item-img { width: 60px; height: 60px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-name { font-weight: 500; font-size: 0.95rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-item-meta { font-size: 0.8rem; color: var(--muted); }
+.cart-item-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.qty-control { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; }
+.qty-btn { background: none; border: none; color: var(--muted); cursor: pointer; width: 22px; height: 22px; font-size: 1rem; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.15s; }
+.qty-btn:hover { background: var(--surface2); color: var(--green); }
+.qty-num { font-size: 0.9rem; font-weight: 500; min-width: 16px; text-align: center; }
+.cart-item-price { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; color: var(--green); min-width: 72px; text-align: right; }
+.remove-item { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.15s; }
+.remove-item:hover { background: rgba(255,79,79,0.1); color: var(--danger); }
+.cart-footer { padding: 20px 24px; border-top: 1px solid var(--border); }
+.cart-summary { margin-bottom: 18px; }
+.cart-summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; }
+.cart-summary-row.total { font-size: 1.1rem; color: var(--text); font-weight: 600; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.cart-summary-row.total .total-amount { font-family: 'Syne', sans-serif; color: var(--green); font-size: 1.3rem; }
+.btn-checkout { width: 100%; background: var(--green); color: var(--bg); border: none; padding: 16px; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.25s; margin-bottom: 10px; }
+.btn-checkout:hover { transform: translateY(-2px); box-shadow: 0 12px 32px var(--green-glow); }
+.btn-checkout:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-continue { width: 100%; background: none; color: var(--muted); border: none; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; cursor: pointer; transition: color 0.2s; }
+.btn-continue:hover { color: var(--green); }
+
+/* CHECKOUT */
+.checkout-page { padding: 100px 5% 80px; max-width: 1100px; margin: 0 auto; }
+.checkout-page h1 { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; margin-bottom: 8px; }
+.checkout-page .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 48px; }
+.checkout-grid { display: grid; grid-template-columns: 1fr 420px; gap: 40px; align-items: start; }
+.steps { display: flex; gap: 0; margin-bottom: 40px; }
+.step { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--muted); }
+.step.active { color: var(--text); }
+.step.done { color: var(--green); }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 600; }
+.step.active .step-num { background: var(--green); color: var(--bg); border-color: var(--green); }
+.step.done .step-num { background: var(--green-dim); color: var(--green); border-color: var(--border-hover); }
+.step-line { width: 40px; height: 1px; background: var(--border); margin: 0 4px; }
+.step-line.done { background: var(--green); }
+.form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; margin-bottom: 20px; }
+.form-section h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; }
+.form-section h3 .icon { width: 32px; height: 32px; border-radius: 8px; background: var(--green-dim); border: 1px solid var(--border-hover); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.04em; }
+.form-group input, .form-group select { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.92rem; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+.form-group input:focus, .form-group select:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-dim); }
+.form-group input::placeholder { color: #3a4050; }
+.payment-tabs { display: flex; gap: 10px; margin-bottom: 22px; }
+.pay-tab { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.85rem; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+.pay-tab:hover { border-color: var(--border-hover); color: var(--text); }
+.pay-tab.active { border-color: var(--green); background: var(--green-dim); color: var(--green); font-weight: 600; }
+.pay-tab-icon { font-size: 1.4rem; margin-bottom: 4px; }
+.card-number-wrap { position: relative; }
+.card-number-wrap input { padding-right: 50px; letter-spacing: 0.1em; }
+.card-brand { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+.order-summary { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; position: sticky; top: 84px; }
+.order-summary h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 22px; color: var(--text); }
+.order-items { margin-bottom: 20px; }
+.order-item-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.order-item-row:last-child { border-bottom: none; }
+.order-item-emoji { font-size: 1.6rem; }
+.order-item-info { flex: 1; min-width: 0; }
+.order-item-name { font-size: 0.88rem; font-weight: 500; }
+.order-item-qty { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+.order-item-price { font-family: 'Syne', sans-serif; font-size: 0.95rem; color: var(--green); font-weight: 600; }
+.order-totals { border-top: 1px solid var(--border); padding-top: 16px; }
+.order-total-row { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--muted); margin-bottom: 10px; }
+.order-total-row.grand { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.order-total-row.grand .g-price { font-family: 'Syne', sans-serif; color: var(--green); font-size: 1.3rem; }
+.secure-badges { margin-top: 20px; display: flex; gap: 12px; justify-content: center; }
+.secure-badge { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.btn-place-order { width: 100%; background: var(--green); color: var(--bg); border: none; padding: 17px; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 1.05rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: all 0.25s; }
+.btn-place-order:hover { transform: translateY(-2px); box-shadow: 0 12px 32px var(--green-glow); }
+
+/* SUCCESS */
+.success-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 80px 5%; }
+.success-content { max-width: 520px; margin: 0 auto; }
+.success-icon { width: 100px; height: 100px; border-radius: 50%; background: var(--green-dim); border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 32px; animation: pop 0.5s cubic-bezier(0.17,0.89,0.32,1.28); }
+@keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+.success-content h1 { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; margin-bottom: 16px; }
+.success-content p { color: var(--muted); line-height: 1.8; margin-bottom: 36px; }
+.order-num { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 28px; font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 36px; color: var(--green); letter-spacing: 0.08em; }
+
+footer { padding: 40px 5%; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; margin-top: 60px; }
+.footer-logo { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; }
+.footer-logo span { color: var(--green); }
+.footer-text { font-size: 0.82rem; color: var(--muted); }
+
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border-hover); border-radius: 50px; padding: 12px 24px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; z-index: 2000; opacity: 0; pointer-events: none; transition: all 0.3s; }
+.toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.toast-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+@media (max-width: 900px) {
+  .slide { flex-direction: column; gap: 40px; }
+  .slides-wrapper { min-height: 820px; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .detail-visual { position: static; }
+  .checkout-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  nav .nav-links { display: none; }
+  .order-summary { order: -1; }
+}
+@media (max-width: 600px) {
+  .slide-price { font-size: 1.8rem; }
+  .products-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo" onclick="showPage('home')">Vertex<span>TW</span></div>
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" data-t="nav_home"></a></li>
+    <li><a onclick="scrollToProducts()" data-t="nav_products"></a></li>
+    <li><a data-t="nav_about"></a></li>
+  </ul>
+  <div class="nav-right">
+
+    <!-- ── LANGUAGE SELECTOR ── -->
+    <div class="lang-wrap" id="langWrap">
+      <button class="lang-btn" onclick="toggleLangMenu()" id="langBtn">
+        <span id="langFlag">🇹🇼</span>
+        <span id="langLabel">繁中</span>
+        <span class="chevron">▼</span>
+      </button>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-option active" onclick="setLang('zh')">
+          <span class="flag">🇹🇼</span><span class="lang-name">繁體中文</span><span class="check">✓</span>
+        </div>
+        <div class="lang-option" onclick="setLang('en')">
+          <span class="flag">🇺🇸</span><span class="lang-name">English</span><span class="check">✓</span>
+        </div>
+        <div class="lang-option" onclick="setLang('es')">
+          <span class="flag">🇪🇸</span><span class="lang-name">Español</span><span class="check">✓</span>
+        </div>
+        <div class="lang-option" onclick="setLang('id')">
+          <span class="flag">🇮🇩</span><span class="lang-name">Bahasa Indonesia</span><span class="check">✓</span>
+        </div>
+        <div class="lang-option" onclick="setLang('th')">
+          <span class="flag">🇹🇭</span><span class="lang-name">ภาษาไทย</span><span class="check">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="cart-btn-nav" onclick="toggleCart()">
+      🛒 <span data-t="cart"></span>
+      <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </div>
+</nav>
+
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h2>🛒 <span data-t="cart"></span></h2>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body"></div>
+  <div class="cart-footer">
+    <div class="cart-summary" id="cart-summary" style="display:none">
+      <div class="cart-summary-row"><span data-t="subtotal"></span><span id="cart-subtotal">NT$0</span></div>
+      <div class="cart-summary-row"><span data-t="shipping"></span><span style="color:var(--green)" data-t="free"></span></div>
+      <div class="cart-summary-row total"><span data-t="total"></span><span class="total-amount" id="cart-total-display">NT$0</span></div>
+    </div>
+    <button class="btn-checkout" id="btn-checkout" onclick="goCheckout()" disabled data-t="go_checkout"></button>
+    <button class="btn-continue" onclick="toggleCart()" data-t="continue_shopping"></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toast-msg"></span></div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="slideshow">
+      <div class="slides-wrapper" id="slides-wrapper">
+
+        <div class="slide active" data-idx="0">
+          <div class="slide-visual"><div class="keyboard-display"><div class="keyboard-emoji">⌨️</div><div class="kb-label">Nova HE60 · Carbon Black</div></div></div>
+          <div class="slide-info">
+            <div class="slide-badge">🔥 <span data-t="badge_hot"></span></div>
+            <h1>Nova<br><em>HE60</em></h1>
+            <p data-t="slide0_desc"></p>
+            <div class="slide-price-row"><div class="slide-price">NT$4,590</div><div class="price-note" data-t="price_note"></div></div>
+            <div class="slide-actions">
+              <button class="btn-primary" onclick="showProductDetail(0)" data-t="view_details"></button>
+              <button class="btn-ghost" onclick="addToCart(0);showToast(L('added_to_cart','Nova HE60'))" data-t="add_to_cart"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-idx="1">
+          <div class="slide-visual"><div class="keyboard-display" style="background:linear-gradient(135deg,#0d1118,#111825)"><div class="keyboard-emoji">🎮</div><div class="kb-label">Phantom 75HE · Midnight Purple</div></div></div>
+          <div class="slide-info">
+            <div class="slide-badge">⚡ <span data-t="badge_esports"></span></div>
+            <h1>Phantom<br><em>75HE</em></h1>
+            <p data-t="slide1_desc"></p>
+            <div class="slide-price-row"><div class="slide-price">NT$5,290</div><div class="price-note" data-t="price_note"></div></div>
+            <div class="slide-actions">
+              <button class="btn-primary" onclick="showProductDetail(1)" data-t="view_details"></button>
+              <button class="btn-ghost" onclick="addToCart(1);showToast(L('added_to_cart','Phantom 75HE'))" data-t="add_to_cart"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-idx="2">
+          <div class="slide-visual"><div class="keyboard-display" style="background:linear-gradient(135deg,#0a1010,#0d1a18)"><div class="keyboard-emoji">🏆</div><div class="kb-label">Titan HE100 · Space Gray</div></div></div>
+          <div class="slide-info">
+            <div class="slide-badge">👑 <span data-t="badge_flagship"></span></div>
+            <h1>Titan<br><em>HE100</em></h1>
+            <p data-t="slide2_desc"></p>
+            <div class="slide-price-row"><div class="slide-price">NT$5,990</div><div class="price-note" data-t="price_note"></div></div>
+            <div class="slide-actions">
+              <button class="btn-primary" onclick="showProductDetail(2)" data-t="view_details"></button>
+              <button class="btn-ghost" onclick="addToCart(2);showToast(L('added_to_cart','Titan HE100'))" data-t="add_to_cart"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-idx="3">
+          <div class="slide-visual"><div class="keyboard-display" style="background:linear-gradient(135deg,#110d10,#1a1018)"><div class="keyboard-emoji">🌸</div><div class="kb-label">Cloud Cream75 · Blush Pink</div></div></div>
+          <div class="slide-info">
+            <div class="slide-badge">✨ <span data-t="badge_limited"></span></div>
+            <h1>Cloud<br><em>Cream75</em></h1>
+            <p data-t="slide3_desc"></p>
+            <div class="slide-price-row"><div class="slide-price">NT$4,890</div><div class="price-note" data-t="price_note_limited"></div></div>
+            <div class="slide-actions">
+              <button class="btn-primary" onclick="showProductDetail(3)" data-t="view_details"></button>
+              <button class="btn-ghost" onclick="addToCart(3);showToast(L('added_to_cart','Cloud Cream75'))" data-t="add_to_cart"></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="slide-controls">
+      <button class="arrow-btn" onclick="prevSlide()">←</button>
+      <button class="dot-btn active" onclick="goSlide(0)"></button>
+      <button class="dot-btn" onclick="goSlide(1)"></button>
+      <button class="dot-btn" onclick="goSlide(2)"></button>
+      <button class="dot-btn" onclick="goSlide(3)"></button>
+      <button class="arrow-btn" onclick="nextSlide()">→</button>
+    </div>
+  </section>
+
+  <section class="products-section" id="products">
+    <div class="section-header">
+      <h2 id="section-title"></h2>
+      <a class="see-all" data-t="see_all"></a>
+    </div>
+    <div class="products-grid" id="products-grid"></div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">Vertex<span>TW</span></div>
+    <div class="footer-text">© 2026 VertexTW — Taiwan Premium Gaming Keyboards</div>
+    <div class="footer-text" data-t="footer_tagline"></div>
+  </footer>
+</div>
+
+<!-- DETAIL -->
+<div class="page" id="page-detail">
+  <div class="product-detail">
+    <button class="back-link" onclick="showPage('home')">← <span data-t="back_home"></span></button>
+    <div class="detail-grid">
+      <div class="detail-visual" id="detail-visual">⌨️</div>
+      <div class="detail-info">
+        <div class="brand">VERTEXTW</div>
+        <h1 id="detail-name"></h1>
+        <div class="detail-badges" id="detail-badges"></div>
+        <p class="detail-desc" id="detail-desc"></p>
+        <div class="specs-grid" id="specs-grid"></div>
+        <div class="detail-price-row">
+          <div class="detail-price" id="detail-price"></div>
+          <div class="detail-price-note" data-t="installment"></div>
+        </div>
+        <div class="color-section"><label data-t="color_label"></label><div class="color-options" id="color-options"></div></div>
+        <div class="switch-section"><label data-t="switch_label"></label><div class="switch-options" id="switch-options"></div></div>
+        <div class="detail-actions">
+          <button class="btn-buy-now" id="detail-buy-now" data-t="buy_now"></button>
+          <button class="btn-add-cart-large" id="detail-add-cart" data-t="add_to_cart"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT -->
+<div class="page" id="page-checkout">
+  <div class="checkout-page">
+    <button class="back-link" onclick="toggleCart()">← <span data-t="back_cart"></span></button>
+    <h1 data-t="checkout_title"></h1>
+    <p class="sub" data-t="checkout_sub"></p>
+    <div class="steps">
+      <div class="step active"><div class="step-num">1</div><span data-t="step1"></span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">2</div><span data-t="step2"></span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">3</div><span data-t="step3"></span></div>
+    </div>
+    <div class="checkout-grid">
+      <div class="checkout-form">
+        <div class="form-section">
+          <h3><span class="icon">📦</span><span data-t="shipping_info"></span></h3>
+          <div class="form-row">
+            <div class="form-group"><label data-t="field_name"></label><input type="text" id="f-name" data-ph="ph_name"></div>
+            <div class="form-group"><label data-t="field_phone"></label><input type="tel" id="f-phone" data-ph="ph_phone"></div>
+          </div>
+          <div class="form-row full"><div class="form-group"><label data-t="field_email"></label><input type="email" id="f-email" placeholder="email@example.com"></div></div>
+          <div class="form-row full"><div class="form-group"><label data-t="field_addr"></label><input type="text" id="f-addr" data-ph="ph_addr"></div></div>
+          <div class="form-row">
+            <div class="form-group"><label data-t="field_city"></label><input type="text" id="f-city" data-ph="ph_city"></div>
+            <div class="form-group"><label data-t="field_zip"></label><input type="text" id="f-zip" placeholder="110"></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <h3><span class="icon">💳</span><span data-t="payment_title"></span></h3>
+          <div class="payment-tabs">
+            <div class="pay-tab active" onclick="selectPayTab(this,'card')"><div class="pay-tab-icon">💳</div><span data-t="pay_card"></span></div>
+            <div class="pay-tab" onclick="selectPayTab(this,'transfer')"><div class="pay-tab-icon">🏦</div><span data-t="pay_bank"></span></div>
+            <div class="pay-tab" onclick="selectPayTab(this,'linepay')"><div class="pay-tab-icon">📱</div>LINE Pay</div>
+          </div>
+          <div id="payment-fields"></div>
+        </div>
+        <button class="btn-place-order" onclick="placeOrder()" data-t="place_order"></button>
+      </div>
+      <div class="order-summary">
+        <h3 data-t="order_summary"></h3>
+        <div class="order-items" id="order-items"></div>
+        <div class="order-totals">
+          <div class="order-total-row"><span data-t="subtotal"></span><span id="order-subtotal">NT$0</span></div>
+          <div class="order-total-row"><span data-t="shipping"></span><span style="color:var(--green)" data-t="free"></span></div>
+          <div class="order-total-row"><span data-t="tax"></span><span data-t="tax_incl"></span></div>
+          <div class="order-total-row grand"><span data-t="total"></span><span class="g-price" id="order-grand">NT$0</span></div>
+        </div>
+        <div class="secure-badges">
+          <span class="secure-badge">🔒 SSL</span>
+          <span class="secure-badge">✅ <span data-t="secure_pay"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="page" id="page-success">
+  <div class="success-page">
+    <div class="success-content">
+      <div class="success-icon">✓</div>
+      <h1 data-t="success_title"></h1>
+      <p data-t="success_desc"></p>
+      <div class="order-num" id="success-order-num"></div>
+      <br>
+      <button class="btn-primary" style="margin:0 auto" onclick="showPage('home')" data-t="continue_shopping"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   TRANSLATIONS
+   ========================================================= */
+const LANGS = {
+  zh: {
+    flag:'🇹🇼', label:'繁中',
+    nav_home:'首頁', nav_products:'產品', nav_about:'關於我們',
+    cart:'購物車', subtotal:'小計', shipping:'運費', free:'免費', total:'總計',
+    go_checkout:'前往結帳', continue_shopping:'繼續購物',
+    badge_hot:'最熱銷款式', badge_esports:'電競旗艦', badge_flagship:'旗艦全尺寸', badge_limited:'限定款',
+    slide0_desc:'60% 緊湊配列，霍爾磁軸 Rapid Trigger 技術，每次擊鍵都帶來 FPS 專業玩家等級的反應速度。',
+    slide1_desc:'75% 完美配列，保留方向鍵的電競最佳選擇，CNC 陽極氧化鋁合金上蓋，質感全面進化。',
+    slide2_desc:'全尺寸 100% 配列旗艦款，數字鍵盤完整保留，重度使用者與直播主的終極選擇。',
+    slide3_desc:'奶油白限定配色，鵝毛觸感靜音軸，讓辦公桌也能充滿美感的高質感鍵盤。',
+    price_note:'含稅・免運費\n分期 0 利率', price_note_limited:'含稅・免運費\n限量供應',
+    view_details:'查看詳情 →', add_to_cart:'加入購物車',
+    section_heading:'全系列', section_heading_accent:'鍵盤', see_all:'查看全部 →',
+    footer_tagline:'台灣製造・全球出貨',
+    back_home:'返回首頁', back_cart:'返回購物車',
+    checkout_title:'結帳', checkout_sub:'填寫以下資訊以完成訂購',
+    step1:'送貨資訊', step2:'付款方式', step3:'確認訂單',
+    shipping_info:'送貨資訊',
+    field_name:'姓名', field_phone:'電話', field_email:'電子郵件', field_addr:'送貨地址', field_city:'城市', field_zip:'郵遞區號',
+    ph_name:'王小明', ph_phone:'09XX-XXX-XXX', ph_addr:'台北市信義區信義路五段 7 號', ph_city:'台北市',
+    payment_title:'付款方式', pay_card:'信用卡', pay_bank:'銀行轉帳',
+    card_num:'信用卡號碼', expiry:'有效期限', cvv:'安全碼 CVV', cardholder:'持卡人姓名',
+    bank_info:'銀行：台灣銀行 (004)<br>帳號：123-456-789-000<br>戶名：VertexTW Co., Ltd.<br><br><span style="color:var(--green)">完成轉帳後請截圖並寄至 support@vertextw.com</span>',
+    linepay_info:'點擊「確認下單」後將跳轉至 LINE Pay 付款頁面',
+    place_order:'確認下單 →', order_summary:'訂單明細',
+    tax:'稅金 (含稅)', tax_incl:'已含', secure_pay:'安全付款',
+    qty_prefix:'數量：',
+    success_title:'訂單成立！', success_desc:'感謝您的購買！我們將在 24 小時內處理您的訂單，並發送確認郵件至您的信箱。',
+    order_prefix:'訂單編號：',
+    installment:'含稅 / 免運費<br>最多 24 期 0 利率',
+    color_label:'顏色選擇', switch_label:'軸體選擇',
+    buy_now:'立即購買',
+    added_to_cart:'{0} 已加入購物車！', cart_empty:'您的購物車是空的',
+    // per-product content
+    p0_badge:'60%', p0_desc:'專為 FPS 競技玩家打造的 60% 緊湊配列鍵盤。搭載新一代霍爾磁軸技術，提供業界頂尖的 Rapid Trigger 可調觸發點功能，0.1mm 精度感應，讓每次操作都快人一步。',
+    p0_switches:['線性軸','觸感軸','靜音軸'],
+    p0_specs:[{l:'配列',v:'60%'},{l:'軸體',v:'Hall Effect 磁軸'},{l:'觸發點',v:'0.1–4.0mm 可調'},{l:'接口',v:'USB-C'},{l:'輪詢率',v:'1000Hz'},{l:'按鍵壽命',v:'1 億次'}],
+    p1_badge:'75%', p1_desc:'75% 完美配列，保留方向鍵與 F 列的電競首選。CNC 陽極氧化航太鋁合金上蓋，搭配 POM 定位板與多層矽膠墊體，打字聲學達到頂尖水準。',
+    p1_switches:['線性軸','觸感軸'],
+    p1_specs:[{l:'配列',v:'75%'},{l:'外殼',v:'CNC 鋁合金'},{l:'定位板',v:'POM'},{l:'Gasket',v:'矽膠'},{l:'輪詢率',v:'8000Hz'},{l:'藍牙',v:'5.1 三模'}],
+    p2_badge:'100%', p2_desc:'全尺寸 100% 配列旗艦款，數字鍵盤完整保留，專為重度辦公與直播需求設計。重量級鋅合金配重底部，按鍵聲紮實低沉，每次輸入皆有儀式感。',
+    p2_switches:['線性軸','觸感軸','靜音軸'],
+    p2_specs:[{l:'配列',v:'100%'},{l:'底部配重',v:'鋅合金'},{l:'無線',v:'2.4G + 藍牙'},{l:'電池',v:'8000mAh'},{l:'輪詢率',v:'1000Hz/8000Hz'},{l:'RGB',v:'南向 RGB'}],
+    p3_badge:'75%', p3_desc:'專為美感辦公桌打造的靜音版 75% 鍵盤。奶油白限定配色，搭配鵝毛觸感靜音磁軸，在安靜的辦公室或咖啡廳使用毫無壓力，打字體驗如絲般順滑。',
+    p3_switches:['靜音線性軸','靜音觸感軸'],
+    p3_specs:[{l:'配列',v:'75%'},{l:'聲學',v:'靜音 5dB'},{l:'外殼',v:'PC 透明上蓋'},{l:'重量',v:'1.2kg'},{l:'輪詢率',v:'1000Hz'},{l:'燈效',v:'南向 RGB'}],
+    p4_badge:'TKL', p4_desc:'職業電競選手指定款 TKL 配列，極致精簡無數字鍵盤，留給滑鼠更大的移動空間。8000Hz 超高輪詢率，配合 Rapid Trigger，讓每一幀都不放棄。',
+    p4_switches:['線性軸'],
+    p4_specs:[{l:'配列',v:'TKL (87鍵)'},{l:'輪詢率',v:'8000Hz'},{l:'觸發點',v:'0.1mm'},{l:'回報延遲',v:'< 0.5ms'},{l:'接口',v:'USB-C'},{l:'PCB',v:'熱插拔'}],
+    p5_badge:'60%', p5_desc:'以聲學為優先的 60% 鍵盤，每個軸都經過手工潤滑與膜片處理。搭配純 PC 定位板與棉花消音，創造出渾厚低頻的「Thock」打字音，聲音玩家的心頭好。',
+    p5_switches:['手工潤線性軸','手工潤觸感軸'],
+    p5_specs:[{l:'配列',v:'60%'},{l:'定位板',v:'PC 透明'},{l:'消音',v:'棉花 + 矽膠'},{l:'潤軸',v:'手工潤 205g0'},{l:'聲學',v:'Thock 低頻'},{l:'PCB',v:'熱插拔'}]
+  },
+
+  en: {
+    flag:'🇺🇸', label:'EN',
+    nav_home:'Home', nav_products:'Products', nav_about:'About',
+    cart:'Cart', subtotal:'Subtotal', shipping:'Shipping', free:'Free', total:'Total',
+    go_checkout:'Checkout', continue_shopping:'Continue Shopping',
+    badge_hot:'Best Seller', badge_esports:'Esports Flagship', badge_flagship:'Full-Size Flagship', badge_limited:'Limited Edition',
+    slide0_desc:'60% compact layout with Hall Effect Rapid Trigger — every keystroke at FPS professional level response speed.',
+    slide1_desc:'75% perfect layout keeping arrow keys, CNC anodized aluminum top case — the ultimate competitive choice.',
+    slide2_desc:'Full 100% layout flagship with complete numpad, the ultimate choice for heavy users and streamers.',
+    slide3_desc:'Cream white limited colorway, feather-touch silent switches — premium aesthetics for any desk setup.',
+    price_note:'Tax incl. · Free shipping\n0% installment available', price_note_limited:'Tax incl. · Free shipping\nLimited stock',
+    view_details:'View Details →', add_to_cart:'Add to Cart',
+    section_heading:'Full', section_heading_accent:'Lineup', see_all:'See All →',
+    footer_tagline:'Made in Taiwan · Ships Worldwide',
+    back_home:'Back to Home', back_cart:'Back to Cart',
+    checkout_title:'Checkout', checkout_sub:'Fill in the details below to complete your order',
+    step1:'Shipping', step2:'Payment', step3:'Confirm',
+    shipping_info:'Shipping Information',
+    field_name:'Full Name', field_phone:'Phone', field_email:'Email', field_addr:'Shipping Address', field_city:'City', field_zip:'Postal Code',
+    ph_name:'John Smith', ph_phone:'+1 555-000-0000', ph_addr:'123 Main Street', ph_city:'New York',
+    payment_title:'Payment Method', pay_card:'Credit Card', pay_bank:'Bank Transfer',
+    card_num:'Card Number', expiry:'Expiry Date', cvv:'CVV', cardholder:'Cardholder Name',
+    bank_info:'Bank: Taiwan Bank (004)<br>Account: 123-456-789-000<br>Name: VertexTW Co., Ltd.<br><br><span style="color:var(--green)">After transfer, email screenshot to support@vertextw.com</span>',
+    linepay_info:'After clicking "Place Order" you will be redirected to LINE Pay.',
+    place_order:'Place Order →', order_summary:'Order Summary',
+    tax:'Tax', tax_incl:'Included', secure_pay:'Secure Payment',
+    qty_prefix:'Qty: ',
+    success_title:'Order Confirmed!', success_desc:'Thank you for your purchase! We will process your order within 24 hours and send a confirmation email.',
+    order_prefix:'Order Number: ',
+    installment:'Tax incl. / Free shipping<br>Up to 24-month 0% APR',
+    color_label:'Color', switch_label:'Switch',
+    buy_now:'Buy Now',
+    added_to_cart:'{0} added to cart!', cart_empty:'Your cart is empty',
+    p0_badge:'60%', p0_desc:'A 60% compact keyboard built for FPS competitive play. Features next-gen Hall Effect magnetic switch technology with industry-leading Rapid Trigger, 0.1mm precision sensing for peak performance.',
+    p0_switches:['Linear','Tactile','Silent'],
+    p0_specs:[{l:'Layout',v:'60%'},{l:'Switch',v:'Hall Effect'},{l:'Actuation',v:'0.1–4.0mm adj.'},{l:'Interface',v:'USB-C'},{l:'Polling',v:'1000Hz'},{l:'Lifespan',v:'100M keystrokes'}],
+    p1_badge:'75%', p1_desc:'75% layout keeping arrow keys and F-row — the go-to competitive choice. CNC aerospace-grade anodized aluminum top case with POM plate and multi-layer silicone gasket mount.',
+    p1_switches:['Linear','Tactile'],
+    p1_specs:[{l:'Layout',v:'75%'},{l:'Case',v:'CNC Aluminum'},{l:'Plate',v:'POM'},{l:'Mount',v:'Gasket'},{l:'Polling',v:'8000Hz'},{l:'Wireless',v:'BT 5.1 Tri-mode'}],
+    p2_badge:'100%', p2_desc:'Full-size 100% flagship with complete numpad, designed for heavy office work and streaming. Zinc alloy counterweight base delivers a deep, satisfying sound on every keystroke.',
+    p2_switches:['Linear','Tactile','Silent'],
+    p2_specs:[{l:'Layout',v:'100%'},{l:'Base',v:'Zinc Alloy'},{l:'Wireless',v:'2.4G + BT'},{l:'Battery',v:'8000mAh'},{l:'Polling',v:'1000/8000Hz'},{l:'RGB',v:'South-facing RGB'}],
+    p3_badge:'75%', p3_desc:'A silent 75% keyboard built for aesthetic desks. Cream white limited colorway with feather-touch silent magnetic switches — silky smooth typing wherever you work.',
+    p3_switches:['Silent Linear','Silent Tactile'],
+    p3_specs:[{l:'Layout',v:'75%'},{l:'Sound',v:'Silent 5dB'},{l:'Case',v:'PC Transparent'},{l:'Weight',v:'1.2kg'},{l:'Polling',v:'1000Hz'},{l:'Lighting',v:'South RGB'}],
+    p4_badge:'TKL', p4_desc:'The TKL layout chosen by pro esports players. No numpad for maximum mouse space. 8000Hz polling rate combined with Rapid Trigger — not a single frame missed.',
+    p4_switches:['Linear'],
+    p4_specs:[{l:'Layout',v:'TKL (87-key)'},{l:'Polling',v:'8000Hz'},{l:'Actuation',v:'0.1mm'},{l:'Latency',v:'< 0.5ms'},{l:'Interface',v:'USB-C'},{l:'PCB',v:'Hot-swap'}],
+    p5_badge:'60%', p5_desc:'An acoustics-first 60% keyboard with every switch hand-lubed and film-treated. Pure PC plate and cotton dampening foam create a rich low-frequency "Thock" — the sound enthusiast\'s dream.',
+    p5_switches:['Lubed Linear','Lubed Tactile'],
+    p5_specs:[{l:'Layout',v:'60%'},{l:'Plate',v:'PC Transparent'},{l:'Dampening',v:'Cotton + Silicone'},{l:'Lube',v:'205g0 Hand-lubed'},{l:'Sound',v:'Thock Low-freq'},{l:'PCB',v:'Hot-swap'}]
+  },
+
+  es: {
+    flag:'🇪🇸', label:'ES',
+    nav_home:'Inicio', nav_products:'Productos', nav_about:'Acerca de',
+    cart:'Carrito', subtotal:'Subtotal', shipping:'Envío', free:'Gratis', total:'Total',
+    go_checkout:'Ir al pago', continue_shopping:'Seguir comprando',
+    badge_hot:'Más vendido', badge_esports:'Emblema Esports', badge_flagship:'Insignia Full-Size', badge_limited:'Edición limitada',
+    slide0_desc:'Diseño compacto 60% con tecnología Hall Effect Rapid Trigger — cada pulsación al nivel de un jugador FPS profesional.',
+    slide1_desc:'Diseño 75% perfecto con teclas de flecha, carcasa CNC de aluminio anodizado — la mejor elección competitiva.',
+    slide2_desc:'Teclado insignia 100% completo con numpad, la elección definitiva para usuarios intensivos y streamers.',
+    slide3_desc:'Colorway crema blanco edición limitada, switches silenciosos suaves — estética premium para cualquier escritorio.',
+    price_note:'IVA incl. · Envío gratis\nFinanciación 0% disponible', price_note_limited:'IVA incl. · Envío gratis\nStock limitado',
+    view_details:'Ver detalles →', add_to_cart:'Añadir al carrito',
+    section_heading:'Toda la', section_heading_accent:'Gama', see_all:'Ver todo →',
+    footer_tagline:'Fabricado en Taiwán · Envío mundial',
+    back_home:'Volver al inicio', back_cart:'Volver al carrito',
+    checkout_title:'Pago', checkout_sub:'Completa los datos para finalizar tu pedido',
+    step1:'Envío', step2:'Pago', step3:'Confirmar',
+    shipping_info:'Información de envío',
+    field_name:'Nombre completo', field_phone:'Teléfono', field_email:'Correo electrónico', field_addr:'Dirección de envío', field_city:'Ciudad', field_zip:'Código postal',
+    ph_name:'Juan García', ph_phone:'+34 600 000 000', ph_addr:'Calle Mayor 1', ph_city:'Madrid',
+    payment_title:'Método de pago', pay_card:'Tarjeta de crédito', pay_bank:'Transferencia bancaria',
+    card_num:'Número de tarjeta', expiry:'Fecha de caducidad', cvv:'CVV', cardholder:'Titular de la tarjeta',
+    bank_info:'Banco: Taiwan Bank (004)<br>Cuenta: 123-456-789-000<br>Nombre: VertexTW Co., Ltd.<br><br><span style="color:var(--green)">Tras la transferencia, envía el comprobante a support@vertextw.com</span>',
+    linepay_info:'Al hacer clic en "Confirmar pedido" serás redirigido a LINE Pay.',
+    place_order:'Confirmar pedido →', order_summary:'Resumen del pedido',
+    tax:'Impuesto', tax_incl:'Incluido', secure_pay:'Pago seguro',
+    qty_prefix:'Cant: ',
+    success_title:'¡Pedido confirmado!', success_desc:'¡Gracias por tu compra! Procesaremos tu pedido en 24 horas y te enviaremos un correo de confirmación.',
+    order_prefix:'Número de pedido: ',
+    installment:'IVA incl. / Envío gratis<br>Hasta 24 meses 0%',
+    color_label:'Color', switch_label:'Switch',
+    buy_now:'Comprar ahora',
+    added_to_cart:'¡{0} añadido al carrito!', cart_empty:'Tu carrito está vacío',
+    p0_badge:'60%', p0_desc:'Teclado compacto 60% diseñado para jugadores competitivos de FPS. Cuenta con tecnología Hall Effect de nueva generación con Rapid Trigger líder en la industria, precisión de 0,1mm.',
+    p0_switches:['Lineal','Táctil','Silencioso'],
+    p0_specs:[{l:'Diseño',v:'60%'},{l:'Switch',v:'Hall Effect'},{l:'Actuación',v:'0.1–4.0mm aj.'},{l:'Interfaz',v:'USB-C'},{l:'Polling',v:'1000Hz'},{l:'Vida útil',v:'100M pulsaciones'}],
+    p1_badge:'75%', p1_desc:'Diseño 75% con teclas de flecha y fila F — la mejor elección competitiva. Carcasa de aluminio aeroespacial CNC anodizado con placa POM y soporte gasket de silicona multicapa.',
+    p1_switches:['Lineal','Táctil'],
+    p1_specs:[{l:'Diseño',v:'75%'},{l:'Carcasa',v:'Aluminio CNC'},{l:'Placa',v:'POM'},{l:'Montaje',v:'Gasket'},{l:'Polling',v:'8000Hz'},{l:'Inalámbrico',v:'BT 5.1 Tri-modo'}],
+    p2_badge:'100%', p2_desc:'Teclado insignia 100% con numpad completo, diseñado para trabajo intensivo y streaming. Base de aleación de zinc ofrece un sonido profundo y satisfactorio en cada pulsación.',
+    p2_switches:['Lineal','Táctil','Silencioso'],
+    p2_specs:[{l:'Diseño',v:'100%'},{l:'Base',v:'Aleación Zinc'},{l:'Inalámbrico',v:'2.4G + BT'},{l:'Batería',v:'8000mAh'},{l:'Polling',v:'1000/8000Hz'},{l:'RGB',v:'RGB sur'}],
+    p3_badge:'75%', p3_desc:'Teclado silencioso 75% para escritorios estéticos. Colorway crema blanco edición limitada con switches magnéticos silenciosos de tacto suave — escritura sedosa donde sea.',
+    p3_switches:['Lineal Silencioso','Táctil Silencioso'],
+    p3_specs:[{l:'Diseño',v:'75%'},{l:'Sonido',v:'Silencioso 5dB'},{l:'Carcasa',v:'PC Transparente'},{l:'Peso',v:'1.2kg'},{l:'Polling',v:'1000Hz'},{l:'Iluminación',v:'RGB sur'}],
+    p4_badge:'TKL', p4_desc:'El diseño TKL elegido por jugadores esports profesionales. Sin numpad para el máximo espacio del ratón. Polling de 8000Hz con Rapid Trigger — ningún fotograma desperdiciado.',
+    p4_switches:['Lineal'],
+    p4_specs:[{l:'Diseño',v:'TKL (87 teclas)'},{l:'Polling',v:'8000Hz'},{l:'Actuación',v:'0.1mm'},{l:'Latencia',v:'< 0.5ms'},{l:'Interfaz',v:'USB-C'},{l:'PCB',v:'Hot-swap'}],
+    p5_badge:'60%', p5_desc:'Un teclado 60% enfocado en la acústica, con cada switch lubricado a mano y tratado con film. Placa PC pura y espuma de algodón crean un profundo "Thock" de baja frecuencia.',
+    p5_switches:['Lineal Lubricado','Táctil Lubricado'],
+    p5_specs:[{l:'Diseño',v:'60%'},{l:'Placa',v:'PC Transparente'},{l:'Amortiguación',v:'Algodón + Silicona'},{l:'Lubricación',v:'205g0 Manual'},{l:'Sonido',v:'Thock baja freq.'},{l:'PCB',v:'Hot-swap'}]
+  },
+
+  id: {
+    flag:'🇮🇩', label:'ID',
+    nav_home:'Beranda', nav_products:'Produk', nav_about:'Tentang Kami',
+    cart:'Keranjang', subtotal:'Subtotal', shipping:'Pengiriman', free:'Gratis', total:'Total',
+    go_checkout:'Lanjut Bayar', continue_shopping:'Lanjut Belanja',
+    badge_hot:'Terlaris', badge_esports:'Unggulan Esports', badge_flagship:'Flagship Full-Size', badge_limited:'Edisi Terbatas',
+    slide0_desc:'Layout kompak 60% dengan teknologi Hall Effect Rapid Trigger — setiap penekanan tombol setara pemain FPS profesional.',
+    slide1_desc:'Layout 75% sempurna dengan tombol panah, casing aluminium CNC anodized — pilihan kompetitif terbaik.',
+    slide2_desc:'Keyboard flagship 100% lengkap dengan numpad, pilihan utama untuk pengguna intensif dan streamer.',
+    slide3_desc:'Warna putih krem edisi terbatas, switch sunyi bertekstur lembut — estetika premium untuk meja kerja mana pun.',
+    price_note:'Termasuk pajak · Gratis ongkir\nCicilan 0% tersedia', price_note_limited:'Termasuk pajak · Gratis ongkir\nStok terbatas',
+    view_details:'Lihat Detail →', add_to_cart:'Tambah ke Keranjang',
+    section_heading:'Seluruh', section_heading_accent:'Lini Produk', see_all:'Lihat Semua →',
+    footer_tagline:'Dibuat di Taiwan · Pengiriman ke Seluruh Dunia',
+    back_home:'Kembali ke Beranda', back_cart:'Kembali ke Keranjang',
+    checkout_title:'Pembayaran', checkout_sub:'Isi detail berikut untuk menyelesaikan pesanan',
+    step1:'Pengiriman', step2:'Pembayaran', step3:'Konfirmasi',
+    shipping_info:'Informasi Pengiriman',
+    field_name:'Nama Lengkap', field_phone:'Telepon', field_email:'Email', field_addr:'Alamat Pengiriman', field_city:'Kota', field_zip:'Kode Pos',
+    ph_name:'Budi Santoso', ph_phone:'+62 812 0000 0000', ph_addr:'Jl. Sudirman No. 1', ph_city:'Jakarta',
+    payment_title:'Metode Pembayaran', pay_card:'Kartu Kredit', pay_bank:'Transfer Bank',
+    card_num:'Nomor Kartu', expiry:'Tanggal Kadaluarsa', cvv:'CVV', cardholder:'Nama Pemegang Kartu',
+    bank_info:'Bank: Taiwan Bank (004)<br>Rekening: 123-456-789-000<br>Nama: VertexTW Co., Ltd.<br><br><span style="color:var(--green)">Setelah transfer, kirim bukti ke support@vertextw.com</span>',
+    linepay_info:'Setelah klik "Konfirmasi Pesanan" Anda akan diarahkan ke LINE Pay.',
+    place_order:'Konfirmasi Pesanan →', order_summary:'Ringkasan Pesanan',
+    tax:'Pajak', tax_incl:'Sudah termasuk', secure_pay:'Pembayaran Aman',
+    qty_prefix:'Jml: ',
+    success_title:'Pesanan Dikonfirmasi!', success_desc:'Terima kasih atas pembelian Anda! Kami akan memproses pesanan dalam 24 jam dan mengirim email konfirmasi.',
+    order_prefix:'Nomor Pesanan: ',
+    installment:'Termasuk pajak / Gratis ongkir<br>Cicilan hingga 24 bulan 0%',
+    color_label:'Warna', switch_label:'Switch',
+    buy_now:'Beli Sekarang',
+    added_to_cart:'{0} ditambahkan ke keranjang!', cart_empty:'Keranjang belanja Anda kosong',
+    p0_badge:'60%', p0_desc:'Keyboard kompak 60% untuk pemain FPS kompetitif. Dilengkapi teknologi Hall Effect generasi terbaru dengan Rapid Trigger terdepan, presisi sensor 0,1mm.',
+    p0_switches:['Linear','Taktil','Sunyi'],
+    p0_specs:[{l:'Layout',v:'60%'},{l:'Switch',v:'Hall Effect'},{l:'Aktuasi',v:'0,1–4,0mm adj.'},{l:'Antarmuka',v:'USB-C'},{l:'Polling',v:'1000Hz'},{l:'Umur',v:'100 juta penekanan'}],
+    p1_badge:'75%', p1_desc:'Layout 75% dengan tombol panah dan baris F — pilihan kompetitif utama. Casing aluminium aerospace CNC anodized dengan pelat POM dan gasket silikon multilapis.',
+    p1_switches:['Linear','Taktil'],
+    p1_specs:[{l:'Layout',v:'75%'},{l:'Casing',v:'Aluminium CNC'},{l:'Pelat',v:'POM'},{l:'Dudukan',v:'Gasket'},{l:'Polling',v:'8000Hz'},{l:'Nirkabel',v:'BT 5.1 Tri-mode'}],
+    p2_badge:'100%', p2_desc:'Keyboard flagship 100% dengan numpad lengkap untuk pengguna berat dan streamer. Basis paduan seng menghasilkan suara ketukan yang dalam dan memuaskan.',
+    p2_switches:['Linear','Taktil','Sunyi'],
+    p2_specs:[{l:'Layout',v:'100%'},{l:'Basis',v:'Paduan Seng'},{l:'Nirkabel',v:'2.4G + BT'},{l:'Baterai',v:'8000mAh'},{l:'Polling',v:'1000/8000Hz'},{l:'RGB',v:'South-facing RGB'}],
+    p3_badge:'75%', p3_desc:'Keyboard sunyi 75% untuk meja estetis. Warna putih krem edisi terbatas dengan switch sunyi bertekstur lembut — pengetikan halus ke mana pun Anda pergi.',
+    p3_switches:['Linear Sunyi','Taktil Sunyi'],
+    p3_specs:[{l:'Layout',v:'75%'},{l:'Suara',v:'Sunyi 5dB'},{l:'Casing',v:'PC Transparan'},{l:'Berat',v:'1,2kg'},{l:'Polling',v:'1000Hz'},{l:'Lampu',v:'South RGB'}],
+    p4_badge:'TKL', p4_desc:'Layout TKL pilihan pemain esports profesional. Tanpa numpad untuk ruang mouse maksimal. Polling 8000Hz dengan Rapid Trigger — tidak ada satu frame pun yang terlewat.',
+    p4_switches:['Linear'],
+    p4_specs:[{l:'Layout',v:'TKL (87 tuts)'},{l:'Polling',v:'8000Hz'},{l:'Aktuasi',v:'0,1mm'},{l:'Latensi',v:'< 0,5ms'},{l:'Antarmuka',v:'USB-C'},{l:'PCB',v:'Hot-swap'}],
+    p5_badge:'60%', p5_desc:'Keyboard 60% berbasis akustik dengan setiap switch dilumasi manual. Pelat PC murni dan busa kapas menciptakan suara "Thock" rendah yang kaya.',
+    p5_switches:['Linear Lubed','Taktil Lubed'],
+    p5_specs:[{l:'Layout',v:'60%'},{l:'Pelat',v:'PC Transparan'},{l:'Peredam',v:'Kapas + Silikon'},{l:'Pelumas',v:'205g0 Manual'},{l:'Suara',v:'Thock rendah'},{l:'PCB',v:'Hot-swap'}]
+  },
+
+  th: {
+    flag:'🇹🇭', label:'ไทย',
+    nav_home:'หน้าหลัก', nav_products:'สินค้า', nav_about:'เกี่ยวกับเรา',
+    cart:'ตะกร้า', subtotal:'ยอดรวมย่อย', shipping:'ค่าจัดส่ง', free:'ฟรี', total:'ยอดรวม',
+    go_checkout:'ชำระเงิน', continue_shopping:'ช้อปต่อ',
+    badge_hot:'ขายดีที่สุด', badge_esports:'เรือธง Esports', badge_flagship:'เรือธง Full-Size', badge_limited:'รุ่นพิเศษ',
+    slide0_desc:'คอมแพ็ค 60% พร้อมเทคโนโลยี Hall Effect Rapid Trigger — ทุกการกดแป้นในระดับนักเล่น FPS มืออาชีพ',
+    slide1_desc:'ขนาด 75% พร้อมปุ่มลูกศร ตัวเครื่อง CNC อะลูมิเนียม anodized — ตัวเลือกที่ดีที่สุดสำหรับการแข่งขัน',
+    slide2_desc:'คีย์บอร์ด 100% ฟูลไซส์พร้อม numpad ครบ — ตัวเลือกสูงสุดสำหรับผู้ใช้งานหนักและสตรีมเมอร์',
+    slide3_desc:'สีครีมขาว Limited Edition สวิตช์เงียบสัมผัสนุ่ม — สวยงามมีระดับสำหรับทุกโต๊ะทำงาน',
+    price_note:'รวมภาษี · จัดส่งฟรี\nผ่อน 0% ได้', price_note_limited:'รวมภาษี · จัดส่งฟรี\nสินค้ามีจำนวนจำกัด',
+    view_details:'ดูรายละเอียด →', add_to_cart:'เพิ่มลงตะกร้า',
+    section_heading:'คีย์บอร์ด', section_heading_accent:'ทุกรุ่น', see_all:'ดูทั้งหมด →',
+    footer_tagline:'ผลิตในไต้หวัน · จัดส่งทั่วโลก',
+    back_home:'กลับหน้าหลัก', back_cart:'กลับตะกร้า',
+    checkout_title:'ชำระเงิน', checkout_sub:'กรอกข้อมูลด้านล่างเพื่อสั่งซื้อ',
+    step1:'ข้อมูลจัดส่ง', step2:'การชำระเงิน', step3:'ยืนยัน',
+    shipping_info:'ข้อมูลการจัดส่ง',
+    field_name:'ชื่อ-นามสกุล', field_phone:'เบอร์โทร', field_email:'อีเมล', field_addr:'ที่อยู่จัดส่ง', field_city:'เมือง', field_zip:'รหัสไปรษณีย์',
+    ph_name:'สมชาย ใจดี', ph_phone:'08X-XXX-XXXX', ph_addr:'123 ถ.สุขุมวิท', ph_city:'กรุงเทพฯ',
+    payment_title:'วิธีชำระเงิน', pay_card:'บัตรเครดิต', pay_bank:'โอนธนาคาร',
+    card_num:'หมายเลขบัตร', expiry:'วันหมดอายุ', cvv:'CVV', cardholder:'ชื่อบนบัตร',
+    bank_info:'ธนาคาร: Taiwan Bank (004)<br>เลขบัญชี: 123-456-789-000<br>ชื่อ: VertexTW Co., Ltd.<br><br><span style="color:var(--green)">หลังโอนกรุณาส่งสลิปมาที่ support@vertextw.com</span>',
+    linepay_info:'หลังกด "ยืนยันคำสั่งซื้อ" คุณจะถูกพาไปยังหน้า LINE Pay',
+    place_order:'ยืนยันคำสั่งซื้อ →', order_summary:'สรุปคำสั่งซื้อ',
+    tax:'ภาษี', tax_incl:'รวมแล้ว', secure_pay:'ชำระเงินปลอดภัย',
+    qty_prefix:'จำนวน: ',
+    success_title:'สั่งซื้อสำเร็จ!', success_desc:'ขอบคุณสำหรับการสั่งซื้อ! เราจะประมวลผลคำสั่งซื้อภายใน 24 ชั่วโมง และส่งอีเมลยืนยัน',
+    order_prefix:'หมายเลขคำสั่งซื้อ: ',
+    installment:'รวมภาษี / จัดส่งฟรี<br>ผ่อนสูงสุด 24 เดือน 0%',
+    color_label:'เลือกสี', switch_label:'เลือกสวิตช์',
+    buy_now:'ซื้อเลย',
+    added_to_cart:'เพิ่ม {0} ลงตะกร้าแล้ว!', cart_empty:'ตะกร้าสินค้าของคุณว่างเปล่า',
+    p0_badge:'60%', p0_desc:'คีย์บอร์ดกะทัดรัด 60% สำหรับนักเล่น FPS แข่งขัน ใช้เทคโนโลยี Hall Effect รุ่นใหม่พร้อม Rapid Trigger ความแม่นยำ 0.1mm',
+    p0_switches:['ลิเนียร์','แทคไทล์','เงียบ'],
+    p0_specs:[{l:'ขนาด',v:'60%'},{l:'สวิตช์',v:'Hall Effect'},{l:'ระยะกด',v:'0.1–4.0mm'},{l:'อินเทอร์เฟซ',v:'USB-C'},{l:'Polling',v:'1000Hz'},{l:'อายุ',v:'100 ล้านครั้ง'}],
+    p1_badge:'75%', p1_desc:'ขนาด 75% พร้อมปุ่มลูกศรและแถว F — ตัวเลือกที่ดีที่สุดสำหรับการแข่งขัน ตัวเครื่อง CNC อะลูมิเนียม aerospace anodized พร้อมแผ่น POM และ gasket ซิลิโคน',
+    p1_switches:['ลิเนียร์','แทคไทล์'],
+    p1_specs:[{l:'ขนาด',v:'75%'},{l:'ตัวเครื่อง',v:'CNC Al'},{l:'แผ่น',v:'POM'},{l:'โครง',v:'Gasket'},{l:'Polling',v:'8000Hz'},{l:'ไร้สาย',v:'BT 5.1 3 โหมด'}],
+    p2_badge:'100%', p2_desc:'คีย์บอร์ด 100% ฟูลไซส์ flagship พร้อม numpad ครบ สำหรับผู้ใช้งานหนักและสตรีมเมอร์ ฐาน zinc alloy counterweight ให้เสียงลึกและน่าพึงพอใจ',
+    p2_switches:['ลิเนียร์','แทคไทล์','เงียบ'],
+    p2_specs:[{l:'ขนาด',v:'100%'},{l:'ฐาน',v:'Zinc Alloy'},{l:'ไร้สาย',v:'2.4G + BT'},{l:'แบต',v:'8000mAh'},{l:'Polling',v:'1000/8000Hz'},{l:'RGB',v:'South RGB'}],
+    p3_badge:'75%', p3_desc:'คีย์บอร์ดเงียบ 75% สำหรับโต๊ะทำงานที่สวยงาม สีขาวครีม Limited Edition พร้อมสวิตช์แม่เหล็กเงียบสัมผัสนุ่ม',
+    p3_switches:['ลิเนียร์เงียบ','แทคไทล์เงียบ'],
+    p3_specs:[{l:'ขนาด',v:'75%'},{l:'เสียง',v:'เงียบ 5dB'},{l:'ตัวเครื่อง',v:'PC ใส'},{l:'น้ำหนัก',v:'1.2kg'},{l:'Polling',v:'1000Hz'},{l:'ไฟ',v:'South RGB'}],
+    p4_badge:'TKL', p4_desc:'TKL สำหรับนักเล่นเกม esports มืออาชีพ ไม่มี numpad เพื่อพื้นที่เมาส์สูงสุด 8000Hz พร้อม Rapid Trigger',
+    p4_switches:['ลิเนียร์'],
+    p4_specs:[{l:'ขนาด',v:'TKL (87 ปุ่ม)'},{l:'Polling',v:'8000Hz'},{l:'ระยะกด',v:'0.1mm'},{l:'ดีเลย์',v:'< 0.5ms'},{l:'อินเทอร์เฟซ',v:'USB-C'},{l:'PCB',v:'Hot-swap'}],
+    p5_badge:'60%', p5_desc:'คีย์บอร์ด 60% เน้นเสียง สวิตช์ทุกตัวลูบด้วยมือ แผ่น PC และฟองน้ำดูดซับเสียงสร้างเสียง "Thock" ความถี่ต่ำที่ลึกและน่าพึงพอใจ',
+    p5_switches:['ลิเนียร์ลูบ','แทคไทล์ลูบ'],
+    p5_specs:[{l:'ขนาด',v:'60%'},{l:'แผ่น',v:'PC ใส'},{l:'ดูดซับ',v:'ฝ้าย + ซิลิโคน'},{l:'สารหล่อ',v:'205g0 มือ'},{l:'เสียง',v:'Thock ต่ำ'},{l:'PCB',v:'Hot-swap'}]
+  }
+};
+
+/* =========================================================
+   PRODUCT DATA (language-independent fields)
+   ========================================================= */
+const products = [
+  { id:0, emoji:'⌨️', name:'Nova HE60',       layout:'60%',  price:4590, colors:['#1a1a1a','#2d3561','#8b5a5a'], colorNames:['Carbon Black','Midnight Blue','Deep Red'] },
+  { id:1, emoji:'🎮', name:'Phantom 75HE',    layout:'75%',  price:5290, colors:['#1c0f2b','#0f1e1c','#1a1512'], colorNames:['Midnight Purple','Forest Green','Dark Bronze'] },
+  { id:2, emoji:'🏆', name:'Titan HE100',     layout:'100%', price:5990, colors:['#202020','#1a1a20','#1a1510'], colorNames:['Space Gray','Cosmic Black','Desert Sand'] },
+  { id:3, emoji:'🌸', name:'Cloud Cream75',   layout:'75%',  price:4890, colors:['#f5ede0','#e8d5c0','#d4c4b0'], colorNames:['Cream White','Ivory','Oat'] },
+  { id:4, emoji:'⚡', name:'Strike TKL Pro',  layout:'TKL',  price:4290, colors:['#0a0a0a','#12121a','#0a120a'], colorNames:['Stealth Black','Navy','Forest'] },
+  { id:5, emoji:'🎵', name:'Mono Mini60',     layout:'60%',  price:3890, colors:['#1a1a1a','#2a2015','#151a1a'], colorNames:['Matte Black','Warm Brown','Slate'] }
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let cart = [];
+let currentSlide = 0;
+let slideTimer;
+let lang = 'zh';
+
+/* =========================================================
+   TRANSLATION HELPERS
+   ========================================================= */
+// Get string from current lang, fall back to zh
+function T(key) { return LANGS[lang][key] ?? LANGS.zh[key] ?? key; }
+
+// Interpolate {0} placeholder
+function L(key, ...args) {
+  let s = T(key);
+  args.forEach((a,i) => { s = s.replace('{'+i+'}', a); });
+  return s;
+}
+
+// Apply all data-t attributes in the DOM
+function applyLang() {
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const k = el.getAttribute('data-t');
+    el.innerHTML = T(k);
+  });
+  // Placeholders
+  document.querySelectorAll('[data-ph]').forEach(el => {
+    el.placeholder = T(el.getAttribute('data-ph'));
+  });
+  // Section title requires two parts
+  const st = document.getElementById('section-title');
+  if (st) st.innerHTML = T('section_heading') + ' <span>' + T('section_heading_accent') + '</span>';
+  // Re-render dynamic content
+  renderProductsGrid();
+  renderCartBody();
+  renderPaymentFields(currentPayType);
+}
+
+/* =========================================================
+   LANGUAGE SELECTOR
+   ========================================================= */
+function toggleLangMenu() {
+  document.getElementById('langWrap').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('langWrap');
+  if (!wrap.contains(e.target)) wrap.classList.remove('open');
+});
+
+function setLang(code) {
+  lang = code;
+  const L = LANGS[code];
+  document.getElementById('langFlag').textContent  = L.flag;
+  document.getElementById('langLabel').textContent = L.label;
+  // Mark active option
+  document.querySelectorAll('.lang-option').forEach(el => {
+    const onclick = el.getAttribute('onclick') || '';
+    el.classList.toggle('active', onclick.includes("'"+code+"'"));
+  });
+  document.getElementById('langWrap').classList.remove('open');
+  applyLang();
+}
+
+/* =========================================================
+   PRODUCTS GRID
+   ========================================================= */
+function renderProductsGrid() {
+  const grid = document.getElementById('products-grid');
+  if (!grid) return;
+  grid.innerHTML = products.map(p => {
+    const badge = T('p'+p.id+'_badge');
+    const desc  = T('p'+p.id+'_desc');
+    return `
+      <div class="product-card" onclick="showProductDetail(${p.id})">
+        <div class="product-card-img">${p.emoji}</div>
+        <div class="product-card-body">
+          <div class="badge">${badge}</div>
+          <h3>${p.name}</h3>
+          <p class="desc">${desc.substring(0,80)}…</p>
+          <div class="product-card-footer">
+            <div class="product-price">NT$${p.price.toLocaleString()}</div>
+            <button class="add-cart-mini"
+              onclick="event.stopPropagation();addToCart(${p.id});showToast(L('added_to_cart','${p.name}'))">
+              ${T('add_to_cart')}
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* =========================================================
+   SLIDESHOW
+   ========================================================= */
+function goSlide(idx) {
+  const slides = document.querySelectorAll('.slide');
+  const dots   = document.querySelectorAll('.dot-btn');
+  slides[currentSlide].classList.remove('active');
+  slides[currentSlide].classList.add('exit-left');
+  setTimeout(() => slides[currentSlide].classList.remove('exit-left'), 600);
+  currentSlide = idx;
+  slides[currentSlide].classList.add('active');
+  dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+  resetTimer();
+}
+function nextSlide() { goSlide((currentSlide+1)%4); }
+function prevSlide() { goSlide((currentSlide+3)%4); }
+function resetTimer() {
+  clearInterval(slideTimer);
+  slideTimer = setInterval(nextSlide, 5000);
+}
+
+/* =========================================================
+   PAGES
+   ========================================================= */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+function scrollToProducts() {
+  showPage('home');
+  setTimeout(() => document.getElementById('products').scrollIntoView({behavior:'smooth'}), 50);
+}
+
+/* =========================================================
+   PRODUCT DETAIL
+   ========================================================= */
+function showProductDetail(id) {
+  const p = products[id];
+  document.getElementById('detail-visual').innerHTML =
+    `<span style="font-size:7rem;position:relative;z-index:1">${p.emoji}</span>`;
+  document.getElementById('detail-name').textContent  = p.name;
+  document.getElementById('detail-price').textContent = `NT$${p.price.toLocaleString()}`;
+  document.getElementById('detail-desc').textContent  = T('p'+id+'_desc');
+
+  const badge = T('p'+id+'_badge');
+  document.getElementById('detail-badges').innerHTML =
+    badge.split('·').map(b => `<span class="detail-badge">${b.trim()}</span>`).join('');
+
+  const specs = T('p'+id+'_specs');
+  document.getElementById('specs-grid').innerHTML =
+    specs.map(s => `<div class="spec-item"><div class="spec-label">${s.l}</div><div class="spec-val">${s.v}</div></div>`).join('');
+
+  document.getElementById('color-options').innerHTML =
+    p.colors.map((c,i) =>
+      `<div class="color-swatch ${i===0?'selected':''}" style="background:${c}" title="${p.colorNames[i]}"
+        onclick="selectColor(this)"></div>`
+    ).join('');
+
+  const switches = T('p'+id+'_switches');
+  document.getElementById('switch-options').innerHTML =
+    switches.map((s,i) =>
+      `<button class="switch-opt ${i===0?'selected':''}" onclick="selectOpt(this)">${s}</button>`
+    ).join('');
+
+  // Re-translate static labels on detail page
+  document.querySelectorAll('#page-detail [data-t]').forEach(el => {
+    el.innerHTML = T(el.getAttribute('data-t'));
+  });
+
+  document.getElementById('detail-buy-now').onclick = () => {
+    addToCart(id); showToast(L('added_to_cart', p.name)); goCheckout();
+  };
+  document.getElementById('detail-add-cart').onclick = () => {
+    addToCart(id); showToast(L('added_to_cart', p.name));
+  };
+
+  showPage('detail');
+}
+
+function selectColor(el) {
+  el.closest('.color-options').querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectOpt(el) {
+  el.closest('.switch-options').querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+/* =========================================================
+   CART
+   ========================================================= */
+function addToCart(productId) {
+  const existing = cart.find(i => i.productId === productId);
+  if (existing) existing.qty++;
+  else cart.push({productId, qty:1});
+  updateCartUI();
+}
+function removeFromCart(productId) {
+  cart = cart.filter(i => i.productId !== productId);
+  updateCartUI();
+}
+function changeQty(productId, delta) {
+  const item = cart.find(i => i.productId === productId);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) removeFromCart(productId);
+  else updateCartUI();
+}
+
+function renderCartBody() {
+  const body        = document.getElementById('cart-body');
+  const summary     = document.getElementById('cart-summary');
+  const checkoutBtn = document.getElementById('btn-checkout');
+  if (!body) return;
+
+  if (cart.length === 0) {
+    body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🛍️</div><p>${T('cart_empty')}</p></div>`;
+    if (summary) summary.style.display = 'none';
+    if (checkoutBtn) checkoutBtn.disabled = true;
+    return;
+  }
+
+  body.innerHTML = cart.map(item => {
+    const p = products[item.productId];
+    return `<div class="cart-item-row">
+      <div class="cart-item-img">${p.emoji}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p.name}</div>
+        <div class="cart-item-meta">${p.layout} · Hall Effect</div>
+      </div>
+      <div class="cart-item-right">
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty(${p.id},-1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${p.id},1)">+</button>
+        </div>
+        <div class="cart-item-price">NT$${(p.price*item.qty).toLocaleString()}</div>
+        <button class="remove-item" onclick="removeFromCart(${p.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const subtotal = cart.reduce((s,i) => s + products[i.productId].price * i.qty, 0);
+  document.getElementById('cart-subtotal').textContent     = `NT$${subtotal.toLocaleString()}`;
+  document.getElementById('cart-total-display').textContent = `NT$${subtotal.toLocaleString()}`;
+  if (summary)     summary.style.display = 'block';
+  if (checkoutBtn) checkoutBtn.disabled  = false;
+}
+
+function updateCartUI() {
+  const total = cart.reduce((s,i) => s + i.qty, 0);
+  document.getElementById('cart-count').textContent = total;
+  renderCartBody();
+}
+
+function toggleCart() {
+  document.getElementById('cart-overlay').classList.toggle('open');
+  document.getElementById('cart-drawer').classList.toggle('open');
+}
+
+/* =========================================================
+   CHECKOUT
+   ========================================================= */
+let currentPayType = 'card';
+
+function goCheckout() {
+  document.getElementById('cart-overlay').classList.remove('open');
+  document.getElementById('cart-drawer').classList.remove('open');
+
+  const subtotal = cart.reduce((s,i) => s + products[i.productId].price * i.qty, 0);
+  document.getElementById('order-items').innerHTML = cart.map(item => {
+    const p = products[item.productId];
+    return `<div class="order-item-row">
+      <div class="order-item-emoji">${p.emoji}</div>
+      <div class="order-item-info">
+        <div class="order-item-name">${p.name}</div>
+        <div class="order-item-qty">${T('qty_prefix')}${item.qty}</div>
+      </div>
+      <div class="order-item-price">NT$${(p.price*item.qty).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('order-subtotal').textContent = `NT$${subtotal.toLocaleString()}`;
+  document.getElementById('order-grand').textContent    = `NT$${subtotal.toLocaleString()}`;
+
+  // Apply language to checkout page static elements
+  document.querySelectorAll('#page-checkout [data-t]').forEach(el => {
+    el.innerHTML = T(el.getAttribute('data-t'));
+  });
+  document.querySelectorAll('#page-checkout [data-ph]').forEach(el => {
+    el.placeholder = T(el.getAttribute('data-ph'));
+  });
+
+  currentPayType = 'card';
+  renderPaymentFields('card');
+  showPage('checkout');
+}
+
+function renderPaymentFields(type) {
+  const fields = document.getElementById('payment-fields');
+  if (!fields) return;
+  if (type === 'card') {
+    fields.innerHTML = `
+      <div class="form-row full"><div class="form-group card-number-wrap">
+        <label>${T('card_num')}</label>
+        <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)">
+        <span class="card-brand" id="card-brand">💳</span>
+      </div></div>
+      <div class="form-row">
+        <div class="form-group"><label>${T('expiry')}</label><input type="text" placeholder="MM / YY" maxlength="7" oninput="formatExp(this)"></div>
+        <div class="form-group"><label>${T('cvv')}</label><input type="text" placeholder="123" maxlength="3"></div>
+      </div>
+      <div class="form-row full"><div class="form-group">
+        <label>${T('cardholder')}</label>
+        <input type="text" placeholder="WANG XIAO MING">
+      </div></div>`;
+  } else if (type === 'transfer') {
+    fields.innerHTML = `<div style="padding:20px;background:var(--bg);border-radius:12px;border:1px solid var(--border);color:var(--muted);font-size:0.9rem;line-height:1.9">
+      ${T('bank_info')}</div>`;
+  } else {
+    fields.innerHTML = `<div style="text-align:center;padding:30px">
+      <div style="font-size:3rem;margin-bottom:16px">📱</div>
+      <p style="color:var(--muted)">${T('linepay_info')}</p>
+    </div>`;
+  }
+}
+
+function selectPayTab(el, type) {
+  document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentPayType = type;
+  renderPaymentFields(type);
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+  const brand = document.getElementById('card-brand');
+  if (brand) brand.textContent = v.startsWith('4')?'💙':v.startsWith('5')?'🔴':v.startsWith('3')?'💚':'💳';
+}
+function formatExp(input) {
+  let v = input.value.replace(/\D/g,'');
+  if (v.length >= 2) v = v.substring(0,2) + ' / ' + v.substring(2,4);
+  input.value = v;
+}
+
+function placeOrder() {
+  const orderNum = 'VTW-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  document.getElementById('success-order-num').textContent = T('order_prefix') + orderNum;
+  // Translate success page
+  document.querySelectorAll('#page-success [data-t]').forEach(el => {
+    el.innerHTML = T(el.getAttribute('data-t'));
+  });
+  cart = [];
+  updateCartUI();
+  showPage('success');
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+applyLang();
+resetTimer();
+renderCartBody(); // empty state
+</script>
+</body>
+</html>
